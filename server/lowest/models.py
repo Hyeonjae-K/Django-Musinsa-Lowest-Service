@@ -19,11 +19,11 @@ class Products(models.Model):
     name = models.CharField(max_length=128)
     brand = models.ForeignKey('Brands', on_delete=models.SET_NULL, null=True)
     current = models.ForeignKey(
-        'History', on_delete=models.SET_DEFAULT, default=0, related_name='current')
+        'History', on_delete=models.SET_NULL, null=True, related_name='current')
     lowest = models.ForeignKey(
-        'History', on_delete=models.SET_DEFAULT, default=0, related_name='lowest')
+        'History', on_delete=models.SET_NULL, null=True, related_name='lowest')
     highest = models.ForeignKey(
-        'History', on_delete=models.SET_DEFAULT, default=0, related_name='highest')
+        'History', on_delete=models.SET_NULL, null=True, related_name='highest')
     url = models.CharField(max_length=256)
     image = models.CharField(max_length=256)
     created_date = models.DateTimeField()
