@@ -16,6 +16,7 @@ class History(models.Model):
 
 
 class Products(models.Model):
+    id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=128)
     brand = models.ForeignKey('Brands', on_delete=models.SET_NULL, null=True)
     current = models.ForeignKey(
