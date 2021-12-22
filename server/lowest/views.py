@@ -1,7 +1,14 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from .models import Brands, History, Products
 from .serializers import BrandsSerializer, HistorySerializer, ProductsSerializer
+from .crawler import brandsCrawler
+
+sched = BackgroundScheduler()
+sched.add_job(brandsCrawler, 'cron', minute='0')
+sched.start()
 
 
 @api_view(['GET'])
