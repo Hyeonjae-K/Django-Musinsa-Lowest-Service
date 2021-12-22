@@ -10,7 +10,7 @@ class Brands(models.Model):
 
 
 class History(models.Model):
-    product = models.ForeignKey('Products', on_delete=models.CASCADE)
+    product = models.BigIntegerField()
     price = models.IntegerField()
     created_date = models.DateTimeField()
 
@@ -18,13 +18,13 @@ class History(models.Model):
 class Products(models.Model):
     id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=128)
-    brand = models.ForeignKey('Brands', on_delete=models.SET_NULL, null=True)
+    brand = models.ForeignKey(Brands, on_delete=models.SET_NULL, null=True)
     current = models.ForeignKey(
-        'History', on_delete=models.SET_NULL, null=True, related_name='current')
+        History, on_delete=models.SET_NULL, null=True, related_name='current')
     lowest = models.ForeignKey(
-        'History', on_delete=models.SET_NULL, null=True, related_name='lowest')
+        History, on_delete=models.SET_NULL, null=True, related_name='lowest')
     highest = models.ForeignKey(
-        'History', on_delete=models.SET_NULL, null=True, related_name='highest')
+        History, on_delete=models.SET_NULL, null=True, related_name='highest')
     url = models.CharField(max_length=256)
     image = models.CharField(max_length=256)
     created_date = models.DateTimeField()
