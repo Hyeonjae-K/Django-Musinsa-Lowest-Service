@@ -8,18 +8,18 @@ from .serializers import BrandsSerializer, HistorySerializer, ProductsSerializer
 def testBrands(request):
     total_brands = Brands.objects.all()
     serializer = BrandsSerializer(total_brands, many=True)
-    Response(serializer.data)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
 def testHistory(request):
     total_History = History.objects.all()
     serializer = HistorySerializer(total_History, many=True)
-    Response(serializer.data)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
 def testProducts(request):
     total_Products = Products.objects.all()
     serializer = ProductsSerializer(total_Products, many=True)
-    Response(serializer.data)
+    return Response(serializer.data)
