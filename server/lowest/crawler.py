@@ -1,12 +1,12 @@
+import django
+django.setup()
+
 import requests
 from bs4 import BeautifulSoup
 from functools import partial
 from multiprocessing import Pool, cpu_count
 from django.utils import timezone
 from .models import Brands, History, Products
-import django
-django.setup()
-
 
 headers = {'User-Agent': 'Mozila/5.0'}
 
@@ -24,7 +24,7 @@ def _brandsCrawler(page_num, brand):
     names = [elem['title'] for elem in elems]
     urls = ['https:' + elem['href'] for elem in elems]
 
-    histories, products = [], []
+    histories, update_products, new_products = [], [], []
     datetime = timezone.now()
     for price, image, product_id, name, url in zip(prices, images, product_ids, names, urls):
         history = History(product=product_id, price=price,
@@ -43,19 +43,16 @@ def _brandsCrawler(page_num, brand):
                     product=product_id).order_by('-price')[0]
             elif product.highest.price < history.price:
                 product.highest = history
-            products.append(product)
+            update_products.append(product)
         except:
-            try:
-                Products(id=product_id, name=name, brand=brand, current=history, lowest=history,
-                         highest=history, url=url, image=image, created_date=datetime).save()
-            except:
-                continue
+            product = Products(id=product_id, name=name, brand=brand, current=history, lowest=history, highest=history, url=url, image=image, created_date=datetime)
+            new_products.append(product)
 
     History.objects.bulk_create(histories)
-    try:
-        Products.objects.bulk_update(products)
-    except:
-        pass
+    if new_products:
+        Products.objects.bulk_create(new_products)
+    if update_products:
+        Products.objects.bulk_update(update_products, ['current', 'lowest', 'highest'])
 
 
 def brandsCrawler():
