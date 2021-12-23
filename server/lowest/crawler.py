@@ -1,18 +1,19 @@
+import requests
+from bs4 import BeautifulSoup
+from functools import partial
+from multiprocessing import Pool, cpu_count
+from django.utils import timezone
+from .models import Brands, History, Products
 import django
 django.setup()
 
-from .models import Brands, History, Products
-from django.utils import timezone
-from multiprocessing import Pool, cpu_count
-from functools import partial
-from bs4 import BeautifulSoup
-import requests
 
 headers = {'User-Agent': 'Mozila/5.0'}
 
 
 def _brandsCrawler(page_num, brand):
-    soup = BeautifulSoup(requests.get(brand.url + f'?page={page_num}').text, 'html.parser')
+    soup = BeautifulSoup(requests.get(
+        brand.url + f'?page={page_num}').text, 'html.parser')
     prices = [int(elem.text.split()[-1].replace(',', '').replace('원', ''))
               for elem in soup.select('#searchList > li > div.li_inner > div.article_info > p.price')]
     images = ['https:' + elem['data-original']
@@ -26,22 +27,30 @@ def _brandsCrawler(page_num, brand):
     histories, products = [], []
     datetime = timezone.now()
     for price, image, product_id, name, url in zip(prices, images, product_ids, names, urls):
-        history = History(product=product_id, price=price, created_date=datetime)
+        history = History(product=product_id, price=price,
+                          created_date=datetime)
         histories.append(history)
         try:
             product = Products.objects.get(id=product_id)
             product.current = history
-            if product.lowest.price > history.price:
+            if product.lowest == None:
+                product.lowest = History.objects.filter(
+                    product=product_id).order_by('price')[0]
+            elif product.lowest.price > history.price:
                 product.lowest = history
-            if product.highest.price < history.price:
+            if product.highest == None:
+                product.highest = History.objects.filter(
+                    product=product_id).order_by('-price')[0]
+            elif product.highest.price < history.price:
                 product.highest = history
             products.append(product)
         except:
             try:
-                Products(id=product_id, name=name, brand=brand, current=history, lowest=history, highest=history, url=url, image=image, created_date=datetime).save()
+                Products(id=product_id, name=name, brand=brand, current=history, lowest=history,
+                         highest=history, url=url, image=image, created_date=datetime).save()
             except:
                 continue
-    
+
     History.objects.bulk_create(histories)
     try:
         Products.objects.bulk_update(products)
