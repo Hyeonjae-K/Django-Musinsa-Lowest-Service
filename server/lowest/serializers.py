@@ -5,17 +5,16 @@ from .models import Brands, History, Products
 class BrandsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brands
-        fields = ('ko_name', 'en_name', 'url', 'image', 'created_date')
+        fields = '__all__'
 
 
 class HistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = History
-        fields = ('product', 'price', 'created_date')
+        fields = '__all__'
 
 
 class ProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Products
-        fields = ('name', 'brand', 'current', 'lowest',
-                  'highest', 'url', 'image', 'created_date')
+        fields = '__all__'
