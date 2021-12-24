@@ -8,6 +8,7 @@ from multiprocessing import Pool, cpu_count
 from django.utils import timezone
 from .models import Brands, History, Products
 
+
 headers = {'User-Agent': 'Mozila/5.0'}
 
 
@@ -23,13 +24,15 @@ def _brandsCrawler(page_num, brand):
     product_ids = [int(elem['href'].split('/')[-1]) for elem in elems]
     names = [elem['title'] for elem in elems]
     urls = ['https:' + elem['href'] for elem in elems]
-
-    histories, update_products, new_products = [], [], []
     datetime = timezone.now()
-    for price, image, product_id, name, url in zip(prices, images, product_ids, names, urls):
-        history = History(product=product_id, price=price,
-                          created_date=datetime)
-        histories.append(history)
+
+    histories = [History(product=product_id, price=price, created_date=datetime)
+                 for product_id, price in zip(product_ids, prices)]
+    History.objects.bulk_create(histories)
+
+    update_products, new_products = [], []
+    for idx, history in enumerate(histories):
+        product_id = product_ids[idx]
         try:
             product = Products.objects.get(id=product_id)
             product.current = history
@@ -45,14 +48,14 @@ def _brandsCrawler(page_num, brand):
                 product.highest = history
             update_products.append(product)
         except:
-            product = Products(id=product_id, name=name, brand=brand, current=history, lowest=history, highest=history, url=url, image=image, created_date=datetime)
-            new_products.append(product)
+            new_products.append(Products(id=product_id, name=names[idx], brand=brand, current=history,
+                                lowest=history, highest=history, url=urls[idx], image=images[idx], created_date=datetime))
 
-    History.objects.bulk_create(histories)
     if new_products:
         Products.objects.bulk_create(new_products)
     if update_products:
-        Products.objects.bulk_update(update_products, ['current', 'lowest', 'highest'])
+        Products.objects.bulk_update(
+            update_products, ['current', 'lowest', 'highest'])
 
 
 def brandsCrawler():
